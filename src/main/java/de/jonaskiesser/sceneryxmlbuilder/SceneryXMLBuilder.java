@@ -17,6 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -31,7 +32,7 @@ import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 public class SceneryXMLBuilder extends JFrame implements ActionListener {
-    
+
     JPanel panel;
     JTextField nameTextField, latlonTextField, altTextField;
     JTextArea resultTextArea;
@@ -41,9 +42,10 @@ public class SceneryXMLBuilder extends JFrame implements ActionListener {
     ArrayList<LandmarkLocation> landmarkLocationList;
     JFileChooser fileChooser;
     JScrollPane scrollPane;
-    
+    JCheckBox checkBox;
+
     public SceneryXMLBuilder() {
-        
+
         try {
             UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
         } catch (ClassNotFoundException ex) {
@@ -55,11 +57,11 @@ public class SceneryXMLBuilder extends JFrame implements ActionListener {
         } catch (UnsupportedLookAndFeelException ex) {
             Logger.getLogger(SceneryXMLBuilder.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
         this.setSize(800, 800);
         this.setLocationRelativeTo(null);
         this.setTitle("SceneryXMLBuilder");
-        
+
         GridLayout g = new GridLayout(0, 1, 0, 0);
         g.setVgap(5);
         panel = new JPanel(g);
@@ -104,7 +106,7 @@ public class SceneryXMLBuilder extends JFrame implements ActionListener {
         String[] comboBoxList = {"POI", "TEST2", "TEST3", "TEST4"};
         comboBoxTypeSelector = new JComboBox(comboBoxList);
         panel.add(comboBoxTypeSelector);
-        
+
         buttonSave = new JButton("Save");
         buttonSave.addActionListener(this);
         panel.add(buttonSave);
@@ -123,55 +125,58 @@ public class SceneryXMLBuilder extends JFrame implements ActionListener {
         buttonExport.addActionListener(this);
         panel.add(buttonExport);
 
+        //Checkbox
+        checkBox = new JCheckBox("Obejcts XML Foramt");
+        panel.add(checkBox);
+
         //Path chooser
         fileChooser = new JFileChooser();
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        
+
         this.add(panel, "Center");
         this.setVisible(true);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        
+
         landmarkLocationList = new ArrayList();
     }
-    
+
     public static void main(String[] args) {
         SceneryXMLBuilder sxb = new SceneryXMLBuilder();
-        
+
     }
-    
+
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == this.buttonSave) {
-            
             createResult();
-            
         }
-        
+
         if (e.getSource() == this.buttonExport) {
             if (!landmarkLocationList.isEmpty()) {
-                createResult();
-                exportResult(createStringFromList());
+
+                if (checkBox.isSelected()) {
+                    exportResult(createStringFromListWithBase(), "objects");
+                } else {
+                    exportResult(createStringFromList(), "output");
+                }
             } else {
                 JOptionPane.showMessageDialog(this, "No entrys to export");
             }
         }
     }
-    
+
     public void createResult() {
-        
+
         String lat, lon;
-        
         String name = nameTextField.getText();
         String latlon = latlonTextField.getText();
-        
         String[] latlonarray = latlon.split(",");
-        
         String alt = altTextField.getText();
-        
+
         if (alt.trim().isEmpty()) {
             alt = "0";
         }
-        
+
         try {
             lat = latlonarray[0].trim();
             lon = latlonarray[1].trim();
@@ -179,44 +184,49 @@ public class SceneryXMLBuilder extends JFrame implements ActionListener {
             nameTextField.setText("");
             latlonTextField.setText("");
             altTextField.setText("");
-            
+
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, "Not a valid format!");
             System.err.println("Not a valid Lat Lon format. Try like this: \"33.70233999204387, -84.3954496633918\"");
             return;
-            
         }
-        
+
         resultTextArea.setText(createStringFromList());
-        
     }
-    
-    private String createStringFromList() {
-        
+
+    private String landMarkLocationListToString() {
         StringBuilder sb = new StringBuilder();
-        
         for (int i = 0; i < landmarkLocationList.size(); i++) {
             sb.append(landmarkLocationList.get(i).toXML()).append("\n");
         }
-        
-        StringSelection stringSelection = new StringSelection(sb.toString().trim());
-        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-        clipboard.setContents(stringSelection, null);
-        
         return sb.toString();
     }
-    
-    private void exportResult(String s) {
-        
+
+    private String createStringFromList() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(landMarkLocationListToString());
+
+        return sb.toString();
+    }
+
+    private String createStringFromListWithBase() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<?xml version=\"1.0\"?>\n<FSData version=\"9.0\">\n");
+        sb.append(createStringFromList());
+        sb.append("</FSData>");
+        return sb.toString();
+    }
+
+    private void exportResult(String s, String fileName) {
         int option = fileChooser.showSaveDialog(panel);
         if (option == JFileChooser.APPROVE_OPTION) {
-            
+
             File file = fileChooser.getSelectedFile();
             System.out.println(file.getAbsolutePath());
-            
+
             try {
-                System.out.println(file.getAbsolutePath() + "\\output.xml");
-                OutputStream outputStream = new FileOutputStream(file.getAbsolutePath() + "\\output.xml");
+                System.out.println(file.getAbsolutePath() + "\\" + fileName + ".xml");
+                OutputStream outputStream = new FileOutputStream(file.getAbsolutePath() + "\\" + fileName + ".xml");
                 OutputStreamWriter outputStreamWriter = new OutputStreamWriter(outputStream);
                 outputStreamWriter.write(s);
                 outputStreamWriter.close();
@@ -227,7 +237,5 @@ public class SceneryXMLBuilder extends JFrame implements ActionListener {
                 System.out.println("IOException ex" + ex.getMessage());
             }
         }
-        
     }
-    
 }

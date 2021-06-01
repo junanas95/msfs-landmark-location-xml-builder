@@ -32,5 +32,6 @@ public class LandmarkLocation {
     public String toString() {
         return "LandmarkLocation{" + "instanceId=" + instanceID + ", type=" + type + ", name=" + name + ", LatString=" + LatString + ", LonString=" + LonString + ", alt=" + alt + '}';
     }
+    
 
 }
