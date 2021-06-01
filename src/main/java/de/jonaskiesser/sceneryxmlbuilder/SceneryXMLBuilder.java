@@ -100,7 +100,7 @@ public class SceneryXMLBuilder extends JFrame implements ActionListener {
         panel.add(typeLabel);
 
         //new stuff
-        String[] comboBoxList = {"POI", "TEST2", "TEST3", "TEST4"};
+        String[] comboBoxList = {"POI"};
         comboBoxTypeSelector = new JComboBox(comboBoxList);
         panel.add(comboBoxTypeSelector);
 
@@ -123,7 +123,7 @@ public class SceneryXMLBuilder extends JFrame implements ActionListener {
         panel.add(buttonExport);
 
         //Checkbox
-        checkBox = new JCheckBox("Obejcts XML Foramt");
+        checkBox = new JCheckBox("MSFS Scenery Objects XML Format");
         panel.add(checkBox);
 
         //Path chooser
